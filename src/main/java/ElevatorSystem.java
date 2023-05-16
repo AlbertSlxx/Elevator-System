@@ -1,3 +1,5 @@
+package main.java;
+
 import javafx.util.Pair;
 
 import java.util.List;
@@ -12,6 +14,33 @@ public class ElevatorSystem implements IElevatorSystem {
     private final TreeMap<Pair<Integer, Integer>, Elevator> freeElevators;
     private final TreeMap<Pair<Integer, Integer>, Elevator> goingUpElevators;
     private final TreeMap<Pair<Integer, Integer>, Elevator> goingDownElevators;
+
+
+    public static int getNumberOfIteration() {
+        return numberOfIteration;
+    }
+
+    public List<Triple<Integer, Integer, Integer>> getElevatorList() {
+        return elevatorList;
+    }
+
+    public TreeMap<Pair<Integer, Integer>, Elevator> getFreeElevators() {
+        return freeElevators;
+    }
+
+    public TreeMap<Pair<Integer, Integer>, Elevator> getGoingUpElevators() {
+        return goingUpElevators;
+    }
+
+    public TreeMap<Pair<Integer, Integer>, Elevator> getGoingDownElevators() {
+        return goingDownElevators;
+    }
+
+    public List<Pair<Integer, Integer>> getQueueWaitingCustomers() {
+        return queueWaitingCustomers;
+    }
+
+
     private final List<Pair<Integer, Integer>> queueWaitingCustomers;
 
 
@@ -108,12 +137,13 @@ public class ElevatorSystem implements IElevatorSystem {
         if (currentCollection == freeElevators) {
             freeElevators.remove(pair);
 
-            if (direction == 1) {
-                yourElevator.setElevatorState(ElevatorState.GOING_UP);
+            ElevatorState newState = (yourElevator.getCurrentFloor() < callFloor) ? ElevatorState.GOING_UP : ElevatorState.GOING_DOWN;
+            yourElevator.setElevatorState(newState);
+
+            if (newState == ElevatorState.GOING_UP) {
                 goingUpElevators.put(pair, yourElevator);
             }
             else {
-                yourElevator.setElevatorState(ElevatorState.GOING_DOWN);
                 goingDownElevators.put(pair, yourElevator);
             }
         }

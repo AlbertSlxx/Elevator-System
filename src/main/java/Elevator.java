@@ -1,3 +1,5 @@
+package main.java;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,6 +13,15 @@ public class Elevator {
     private List<Integer> floorsToStop;
     private List<Integer> floorsToPickUp;
 
+
+    public Elevator(int id) {
+        ID = id;
+        currentFloor = 0;
+        currentDestinationFloor = 0;
+        elevatorState = ElevatorState.FREE;
+        floorsToStop = new ArrayList<>();
+        floorsToPickUp = new ArrayList<>();
+    }
 
     public Elevator (int id, int cf) {
         ID = id;
@@ -61,6 +72,8 @@ public class Elevator {
     }
 
     public boolean ifTakePassengerOnCurrentFloor() { return floorsToPickUp.contains(currentDestinationFloor); }
+
+    public boolean hasCall(int floor) { return floorsToPickUp.contains(floor); }
 
 
     public void displayStatus() {

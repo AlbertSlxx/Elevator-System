@@ -1,3 +1,5 @@
+package main.java;
+
 import javafx.util.Pair;
 import java.util.Comparator;
 

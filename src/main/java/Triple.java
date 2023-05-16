@@ -1,3 +1,5 @@
+package main.java;
+
 public class Triple<T, U, V> {
 
     private T first;

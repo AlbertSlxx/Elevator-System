@@ -6,41 +6,25 @@ import java.util.Scanner;
 public class Elevator {
     private int ID;
     private int currentFloor;
-    private int destFloor;
-    private List<Integer> destFloorsList;
-    private List<Integer> pickUpFloors;
-    private int floorDifference;
+    private int currentDestinationFloor;
     private ElevatorState elevatorState;
+    private List<Integer> floorsToStop;
+    private List<Integer> floorsToPickUp;
+
 
     public Elevator (int id, int cf) {
         ID = id;
         currentFloor = cf;
-        destFloor = cf;
-        destFloorsList = new ArrayList<>();
-        pickUpFloors = new ArrayList<>();
+        currentDestinationFloor = cf;
         elevatorState = ElevatorState.FREE;
+        floorsToStop = new ArrayList<>();
+        floorsToPickUp = new ArrayList<>();
     }
 
-    public int getDestFloor() {
-        return destFloor;
-    }
-
-    public void setDestFloor(int destFloor) {
-        this.destFloor = destFloor;
-    }
-
-    public int getFloorDifference() {
-        return floorDifference;
-    }
-
-    public void setFloorDifference(int floorDifference) {
-        this.floorDifference = floorDifference;
-    }
 
     public int getID() {
         return ID;
     }
-
     public void setID(int ID) {
         this.ID = ID;
     }
@@ -48,21 +32,39 @@ public class Elevator {
     public int getCurrentFloor() {
         return currentFloor;
     }
-
     public void setCurrentFloor(int currentFloor) {
         this.currentFloor = currentFloor;
     }
 
-    public ElevatorState getElevatorState() {
-        return elevatorState;
+    public int getCurrentDestinationFloor() {
+        return currentDestinationFloor;
+    }
+    public void setCurrentDestinationFloor(int currentDestinationFloor) {
+        this.currentDestinationFloor = currentDestinationFloor;
     }
 
-    public void setElevatorState(ElevatorState elevatorState) {
-        this.elevatorState = elevatorState;
+    public ElevatorState getElevatorState() { return elevatorState; }
+    public void setElevatorState(ElevatorState elevatorState) { this.elevatorState = elevatorState; }
+
+    public List<Integer> getFloorsToStop() {
+        return floorsToStop;
     }
+    public void setFloorsToStop(List<Integer> floorsToStop) {
+        this.floorsToStop = floorsToStop;
+    }
+
+    public List<Integer> getFloorsToPickUp() { return floorsToPickUp; }
+    public void setFloorsToPickUp(List<Integer> floorsToPickUp) { this.floorsToPickUp = floorsToPickUp; }
+
+    public int getNumberOfDestinations() {
+        return floorsToStop.size();
+    }
+
+    public boolean ifTakePassengerOnCurrentFloor() { return floorsToPickUp.contains(currentDestinationFloor); }
+
 
     public void displayStatus() {
-        System.out.println("Lift num " + ID + " is current on " + currentFloor + " floor, destination floor: " + destFloor);
+        System.out.println("Lift num " + ID + " is current on " + currentFloor + " floor, destination floor: " + currentDestinationFloor);
     }
 
     public void clickTargetFloorButton() {
@@ -73,7 +75,6 @@ public class Elevator {
 
         updateDestFloor();
         addDestination(passengerDestFloor);
-        //floorDifference = destFloor - currentFloor;
     }
 
     public void releasePassenger() {
@@ -82,52 +83,40 @@ public class Elevator {
         updateDestFloor();
     }
 
-    public List<Integer> getDestFloorsList() {
-        return destFloorsList;
-    }
-
-    public void setDestFloorsList(List<Integer> destFloorsList) {
-        this.destFloorsList = destFloorsList;
-    }
 
     public void addCall (int callFloor) {
 
-        // czy to piętro istnieje w kolejce wezwań - jeżeli tak nie dodawaj
-        if (!pickUpFloors.contains(callFloor))
-            pickUpFloors.add(callFloor);
+        if (!floorsToPickUp.contains(callFloor))
+            floorsToPickUp.add(callFloor);
 
         addDestination(callFloor);
     }
 
-    public void addDestination (int destinationFloor) {
+    public void addDestination (int newDestinationFloor) {
 
-        // czy to piętro istnieje w kolejce destynacji - jeżeli tak nie dodawaj
-        if (!destFloorsList.contains(destinationFloor))
-            destFloorsList.add(destinationFloor);
+        if (!floorsToStop.contains(newDestinationFloor))
+            floorsToStop.add(newDestinationFloor);
 
-        if (destFloorsList.size() == 1 || destinationFloor < destFloor)
-            destFloor = destinationFloor;
-    }
+        if (
+                (newDestinationFloor < currentDestinationFloor && elevatorState == ElevatorState.GOING_UP) ||
+                (newDestinationFloor > currentDestinationFloor && elevatorState == ElevatorState.GOING_DOWN) ||
+                (floorsToStop.size() == 1)
+           )
+            currentDestinationFloor = newDestinationFloor;
 
-    public boolean ifTakePassengerOnCurrentFloor() {
-        return pickUpFloors.contains(destFloor);
     }
 
     public void updateDestFloor() {
-        destFloorsList.remove((Object)destFloor);
 
-        if (pickUpFloors.contains(destFloor))
-            pickUpFloors.remove((Object)destFloor);
+        floorsToStop.remove((Object) currentDestinationFloor);
 
-        // różna zmiana w zależności od kierunku jazdy - enum jako pole
-        int size = destFloorsList.size();
-        if (elevatorState == ElevatorState.GOING_UP && size > 0)
-            destFloor = Collections.min(destFloorsList);
-        else if (elevatorState == ElevatorState.GOING_DOWN && size > 0)
-            destFloor = Collections.max(destFloorsList);
-    }
+        if (floorsToPickUp.contains(currentDestinationFloor))
+            floorsToPickUp.remove((Object) currentDestinationFloor);
 
-    public int getNumberOfDestinations() {
-        return destFloorsList.size();
+        int size = floorsToStop.size();
+        if (size > 0 && elevatorState == ElevatorState.GOING_UP)
+            currentDestinationFloor = Collections.min(floorsToStop);
+        else if (size > 0 && elevatorState == ElevatorState.GOING_DOWN)
+            currentDestinationFloor = Collections.max(floorsToStop);
     }
 }

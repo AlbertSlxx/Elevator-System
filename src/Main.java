@@ -5,12 +5,12 @@ public class Main {
         ElevatorSystem mySystem = new ElevatorSystem();
 
         mySystem.addElevator(new Elevator(1, 1));
-        mySystem.addElevator(new Elevator(2, 2));
-        mySystem.addElevator(new Elevator(3, 3));
-        mySystem.addElevator(new Elevator(4, 4));
 
+        mySystem.pickup(0, -1);
         mySystem.pickup(4, 1);
-        mySystem.pickup(5, 1);
+        mySystem.pickup(5, -1);
+        mySystem.pickup(6, 1);
+        mySystem.pickup(6, 1);
         mySystem.pickup(6, 1);
 
         System.out.println(">>WELCOME TO ELEVATOR SYSTEM SIMULATION<<");

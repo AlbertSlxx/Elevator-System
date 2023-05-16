@@ -5,13 +5,10 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static java.lang.Math.abs;
-
 
 public class ElevatorSystem implements IElevatorSystem {
     private static int numberOfIteration;
     private final List<Triple<Integer, Integer, Integer>> elevatorList;
-    private final List<Elevator> allElevators;
     private final TreeMap<Pair<Integer, Integer>, Elevator> freeElevators;
     private final TreeMap<Pair<Integer, Integer>, Elevator> goingUpElevators;
     private final TreeMap<Pair<Integer, Integer>, Elevator> goingDownElevators;
@@ -22,7 +19,6 @@ public class ElevatorSystem implements IElevatorSystem {
         numberOfIteration = 0;
 
         elevatorList = new ArrayList<>();
-        allElevators = new ArrayList<>();
 
         PairComparator pairComparator = new PairComparator();
 
@@ -33,7 +29,6 @@ public class ElevatorSystem implements IElevatorSystem {
     }
 
     public void addElevator(Elevator elevator) {
-        allElevators.add(elevator);
         freeElevators.put(new Pair<>(elevator.getCurrentFloor(), elevator.getID()), elevator);
     }
 
@@ -43,63 +38,39 @@ public class ElevatorSystem implements IElevatorSystem {
 
         if (freeElevators.size() > 0) {
 
-            Map.Entry<Pair<Integer, Integer>, Elevator> floorElevator = freeElevators.firstEntry();
+            int minDiff = Integer.MAX_VALUE;
+            Elevator nearestElevator = null;
 
-            Pair<Integer, Integer> pair = floorElevator.getKey();
-
-            int minDiff = abs(targetFloor - pair.getKey());
-
-            Elevator nearestElevator = floorElevator.getValue();
-
-            while ((floorElevator = freeElevators.higherEntry(pair)) != null) {
-                pair = floorElevator.getKey();
-                int diff = abs(targetFloor - pair.getKey());
+            for (Map.Entry<Pair<Integer, Integer>, Elevator> entry : freeElevators.entrySet()) {
+                int diff = Math.abs(entry.getKey().getKey() - targetFloor);
 
                 if (diff < minDiff) {
                     minDiff = diff;
-                    nearestElevator = floorElevator.getValue();
+                    nearestElevator = entry.getValue();
                 }
             }
 
+            if (nearestElevator == null)
+                return null;
 
             return new Pair<>(freeElevators, nearestElevator);
         }
         else if (direction == 1 && goingUpElevators.size() > 0) {
 
-            // czy potrzebuje przypisania jeszcze przed rozpoczęciem pętli ?
+            Pair<Integer, Integer> targetPair = new Pair<>(targetFloor, 0);
 
-            Map.Entry<Pair<Integer, Integer>, Elevator> floorElevator = goingUpElevators.firstEntry();
+            Map.Entry<Pair<Integer, Integer>, Elevator> nearestElevator = goingUpElevators.floorEntry(targetPair);
 
-            Pair<Integer, Integer> pair = floorElevator.getKey();
+            if (nearestElevator == null)
+                return null;
 
-            int minDiff = targetFloor - pair.getKey();
-
-            Elevator nearestElevator = floorElevator.getValue();
-
-            while ((floorElevator = goingUpElevators.higherEntry(pair)) != null) {
-                pair = floorElevator.getKey();
-                int diff = targetFloor - pair.getKey();
-
-                // dana winda jest na piętrze ponad piętrem wezwania
-                if (diff < 0)
-                    continue;
-
-                // znaleziono windę o mniejszej różnicy pięter
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    nearestElevator = floorElevator.getValue();
-                }
-            }
-
-            // jeżeli nie znaleziono takiej windy - return
-
-            return new Pair<>(goingUpElevators, nearestElevator);
+            return new Pair<>(goingUpElevators, nearestElevator.getValue());
         }
         else if (direction == -1 && goingDownElevators.size() > 0) {
 
             Pair<Integer, Integer> targetPair = new Pair<>(targetFloor, 0);
 
-            Map.Entry<Pair<Integer, Integer>, Elevator> nearestElevator = goingDownElevators.floorEntry(targetPair);
+            Map.Entry<Pair<Integer, Integer>, Elevator> nearestElevator = goingDownElevators.ceilingEntry(targetPair);
 
             if (nearestElevator == null)
                 return null;
@@ -115,7 +86,9 @@ public class ElevatorSystem implements IElevatorSystem {
         Pair<TreeMap<Pair<Integer, Integer>, Elevator>, Elevator> collectionAndElevator = findElevatorToPickUp(callFloor, direction);
 
         if (collectionAndElevator == null) {
-            queueWaitingCustomers.add(new Pair<Integer, Integer>(callFloor, direction));
+            Pair<Integer, Integer> currentPair = new Pair<>(callFloor, direction);
+
+            queueWaitingCustomers.add(currentPair);
 
             String directName = (direction == 1) ? "up" : "down";
             System.out.println("No lift available to move from " + callFloor + " floor " + directName + " at the moment, please wait...");
@@ -128,12 +101,10 @@ public class ElevatorSystem implements IElevatorSystem {
         Pair<Integer, Integer> pair = new Pair<>(yourElevator.getCurrentFloor(), yourElevator.getID());
 
         System.out.println("PickUp registered");
-        yourElevator.displayStatus();
         yourElevator.addCall(callFloor);
         yourElevator.displayStatus();
         System.out.println();
 
-        // usuniecie + dodanie (żeby dodawało pomiędzy różnymi listami) - w przypadku braku wolnych wind użycie kolejki (?)
         if (currentCollection == freeElevators) {
             freeElevators.remove(pair);
 
@@ -149,11 +120,9 @@ public class ElevatorSystem implements IElevatorSystem {
     }
 
     public void update(TreeMap<Pair<Integer, Integer>, Elevator> currentMap, Elevator elevator) {
-        if (elevator.getCurrentFloor() != elevator.getDestFloor()) {
+        if (elevator.getCurrentFloor() != elevator.getCurrentDestinationFloor()) {
 
-            //int floorDifference = elevator.getCurrentFloor() - elevator.getDestFloor();
-
-            int makeMove = (elevator.getCurrentFloor() < elevator.getDestFloor()) ? 1 : -1;
+            int makeMove = (elevator.getCurrentFloor() < elevator.getCurrentDestinationFloor()) ? 1 : -1;
 
             elevator.setCurrentFloor(elevator.getCurrentFloor() + makeMove);
         }
@@ -170,8 +139,9 @@ public class ElevatorSystem implements IElevatorSystem {
 
         takeStepForCollection(new TreeMap<>(goingDownElevators), goingDownElevators);
 
+        tryAssignElevatorsToWaitingCustomers();
+
         System.out.println();
-        // kolejka z nieobsłużonymi klientami - wywołać ponownie dla nich pickup (?) (foreach dla waitingClients i wywołania pickup())
     }
 
     private void takeStepForCollection(TreeMap<Pair<Integer, Integer>, Elevator> collectionCopy, TreeMap<Pair<Integer, Integer>, Elevator> updatedCollection) {
@@ -182,7 +152,7 @@ public class ElevatorSystem implements IElevatorSystem {
 
             update(updatedCollection, elevator);
 
-            if (elevator.getCurrentFloor() == elevator.getDestFloor()) {
+            if (elevator.getCurrentFloor() == elevator.getCurrentDestinationFloor()) {
 
                 if (elevator.ifTakePassengerOnCurrentFloor())
                     elevator.clickTargetFloorButton();
@@ -204,6 +174,14 @@ public class ElevatorSystem implements IElevatorSystem {
         }
     }
 
+    private void tryAssignElevatorsToWaitingCustomers() {
+        List<Pair<Integer, Integer>> oldQueue = new ArrayList<>(queueWaitingCustomers);
+        queueWaitingCustomers.clear();
+
+        for (Pair<Integer, Integer> pickUpCall: oldQueue) {
+            pickup(pickUpCall.getKey(), pickUpCall.getValue());
+        }
+    }
 
     public List<Triple<Integer, Integer, Integer>> status() {
         return elevatorList;

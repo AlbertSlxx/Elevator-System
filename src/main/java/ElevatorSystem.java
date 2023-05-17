@@ -14,6 +14,7 @@ public class ElevatorSystem implements IElevatorSystem {
     private final TreeMap<Pair<Integer, Integer>, Elevator> freeElevators;
     private final TreeMap<Pair<Integer, Integer>, Elevator> goingUpElevators;
     private final TreeMap<Pair<Integer, Integer>, Elevator> goingDownElevators;
+    private final List<Pair<Integer, Integer>> queueWaitingCustomers;
 
 
     public static int getNumberOfIteration() {
@@ -32,16 +33,11 @@ public class ElevatorSystem implements IElevatorSystem {
         return goingUpElevators;
     }
 
-    public TreeMap<Pair<Integer, Integer>, Elevator> getGoingDownElevators() {
-        return goingDownElevators;
-    }
+    public TreeMap<Pair<Integer, Integer>, Elevator> getGoingDownElevators() { return goingDownElevators; }
 
     public List<Pair<Integer, Integer>> getQueueWaitingCustomers() {
         return queueWaitingCustomers;
     }
-
-
-    private final List<Pair<Integer, Integer>> queueWaitingCustomers;
 
 
     public ElevatorSystem() {
@@ -58,57 +54,122 @@ public class ElevatorSystem implements IElevatorSystem {
     }
 
     public void addElevator(Elevator elevator) {
+        //elevatorList.add(new Triple<>(elevator.getID(), elevator.getCurrentFloor(), elevator.getCurrentDestinationFloor()));
         freeElevators.put(new Pair<>(elevator.getCurrentFloor(), elevator.getID()), elevator);
+    }
+
+    public void checkStatusOfSystem() {
+        for (Triple<Integer, Integer, Integer> curr: elevatorList) {
+            System.out.print("[" + curr.getFirst() + ", " + curr.getSecond() + ", " + curr.getThird() + "]\n");
+        }
+    }
+
+
+    private Elevator findBestFreeElevatorToCall(Integer targetFloor) {
+        int minDiff = Integer.MAX_VALUE;
+        Elevator nearestElevator = null;
+
+        for (Map.Entry<Pair<Integer, Integer>, Elevator> entry : freeElevators.entrySet()) {
+            int diff = Math.abs(entry.getKey().getKey() - targetFloor);
+
+            if (diff < minDiff) {
+                minDiff = diff;
+                nearestElevator = entry.getValue();
+            }
+        }
+
+        return nearestElevator;
+    }
+
+    private Elevator findBestGoingUpElevatorToCall(Integer targetFloor) {
+        Pair<Integer, Integer> targetPair = new Pair<>(targetFloor, 0);
+
+        Map.Entry<Pair<Integer, Integer>, Elevator> nearestElevator = goingUpElevators.floorEntry(targetPair);
+
+        if (nearestElevator == null)
+            return null;
+
+        return nearestElevator.getValue();
+    }
+
+    private Elevator findBestGoingDownElevatorToCall(Integer targetFloor) {
+        Pair<Integer, Integer> targetPair = new Pair<>(targetFloor, 0);
+
+        Map.Entry<Pair<Integer, Integer>, Elevator> nearestElevator = goingDownElevators.ceilingEntry(targetPair);
+
+        if (nearestElevator == null)
+            return null;
+
+        return nearestElevator.getValue();
     }
 
     public Pair<TreeMap<Pair<Integer, Integer>, Elevator>, Elevator> findElevatorToPickUp(Integer callFloor, Integer direction) {
 
         int targetFloor = callFloor;
+        Elevator nearestElevator;
+        TreeMap<Pair<Integer, Integer>, Elevator> collectionWithNearestElevator;
 
-        if (freeElevators.size() > 0) {
+        if (freeElevators.size() > 0 && goingUpElevators.size() > 0 && direction == 1) {
+            Elevator nearestFreeElevator = findBestFreeElevatorToCall(targetFloor);
+            Elevator nearestGoingUpElevator = findBestGoingUpElevatorToCall(targetFloor);
 
-            int minDiff = Integer.MAX_VALUE;
-            Elevator nearestElevator = null;
+            if (nearestGoingUpElevator == null) {
+                nearestElevator = nearestFreeElevator;
+                collectionWithNearestElevator = freeElevators;
+            }
+            else if (nearestGoingUpElevator.hasCall(callFloor) ||
+                    (callFloor - nearestGoingUpElevator.getCurrentFloor() < Math.abs(callFloor - nearestFreeElevator.getCurrentFloor()) / 2) ||
+                    (callFloor - nearestGoingUpElevator.getCurrentFloor() < Math.abs(callFloor - nearestFreeElevator.getCurrentFloor()) && callFloor - nearestGoingUpElevator.getCurrentDestinationFloor() < Math.abs(callFloor - nearestFreeElevator.getCurrentFloor()))
+            ) {
+                   nearestElevator = nearestGoingUpElevator;
+                   collectionWithNearestElevator = goingUpElevators;
+            }
+            else {
+                nearestElevator = nearestFreeElevator;
+                collectionWithNearestElevator = freeElevators;
+            }
+        }
+        else if (freeElevators.size() > 0 && goingDownElevators.size() > 0 && direction == -1) {
+            Elevator nearestFreeElevator = findBestFreeElevatorToCall(targetFloor);
+            Elevator nearestGoingDownElevator = findBestGoingDownElevatorToCall(targetFloor);
 
-            for (Map.Entry<Pair<Integer, Integer>, Elevator> entry : freeElevators.entrySet()) {
-                int diff = Math.abs(entry.getKey().getKey() - targetFloor);
-
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    nearestElevator = entry.getValue();
-                }
+            if (nearestGoingDownElevator == null) {
+                nearestElevator = nearestFreeElevator;
+                collectionWithNearestElevator = freeElevators;
+            }
+            else if (nearestGoingDownElevator.hasCall(callFloor) ||
+                    (nearestGoingDownElevator.getCurrentFloor() - callFloor < Math.abs(nearestFreeElevator.getCurrentFloor() - callFloor) / 2) ||
+                    (nearestGoingDownElevator.getCurrentFloor() - callFloor < Math.abs(nearestFreeElevator.getCurrentFloor() - callFloor) && nearestGoingDownElevator.getCurrentDestinationFloor() - callFloor < Math.abs(nearestFreeElevator.getCurrentFloor() - callFloor))
+            ) {
+                nearestElevator = nearestGoingDownElevator;
+                collectionWithNearestElevator = goingDownElevators;
+            }
+            else {
+                nearestElevator = nearestFreeElevator;
+                collectionWithNearestElevator = freeElevators;
             }
 
-            if (nearestElevator == null)
-                return null;
-
-            return new Pair<>(freeElevators, nearestElevator);
+        }
+        else if (freeElevators.size() > 0) {
+            nearestElevator = findBestFreeElevatorToCall(targetFloor);
+            collectionWithNearestElevator = freeElevators;
         }
         else if (direction == 1 && goingUpElevators.size() > 0) {
-
-            Pair<Integer, Integer> targetPair = new Pair<>(targetFloor, 0);
-
-            Map.Entry<Pair<Integer, Integer>, Elevator> nearestElevator = goingUpElevators.floorEntry(targetPair);
-
-            if (nearestElevator == null)
-                return null;
-
-            return new Pair<>(goingUpElevators, nearestElevator.getValue());
+            nearestElevator = findBestGoingUpElevatorToCall(targetFloor);
+            collectionWithNearestElevator = goingUpElevators;
         }
         else if (direction == -1 && goingDownElevators.size() > 0) {
-
-            Pair<Integer, Integer> targetPair = new Pair<>(targetFloor, 0);
-
-            Map.Entry<Pair<Integer, Integer>, Elevator> nearestElevator = goingDownElevators.ceilingEntry(targetPair);
-
-            if (nearestElevator == null)
-                return null;
-
-            return new Pair<>(goingDownElevators, nearestElevator.getValue());
+            nearestElevator = findBestGoingDownElevatorToCall(targetFloor);
+            collectionWithNearestElevator = goingDownElevators;
         }
         else
             return null;
 
+
+        if (nearestElevator == null)
+            return null;
+
+        return new Pair<>(collectionWithNearestElevator, nearestElevator);
     }
 
     public void pickup(Integer callFloor, Integer direction) {

@@ -23,10 +23,10 @@ public class Elevator {
         floorsToPickUp = new ArrayList<>();
     }
 
-    public Elevator (int id, int cf) {
+    public Elevator (int id, int floor) {
         ID = id;
-        currentFloor = cf;
-        currentDestinationFloor = cf;
+        currentFloor = floor;
+        currentDestinationFloor = floor;
         elevatorState = ElevatorState.FREE;
         floorsToStop = new ArrayList<>();
         floorsToPickUp = new ArrayList<>();

@@ -27,7 +27,7 @@ public class ElevatorSystemUnitTests {
         Elevator elevator = new Elevator(1);
         elevatorSystem.addElevator(elevator);
 
-        elevatorSystem.pickup(callFloor, direction);
+        elevatorSystem.pickUp(callFloor, direction);
 
 
         Assertions.assertTrue(elevator.hasCall(callFloor));
@@ -43,7 +43,7 @@ public class ElevatorSystemUnitTests {
         elevator.setElevatorState(ElevatorState.GOING_UP);
         elevatorSystem.addElevator(elevator);
 
-        elevatorSystem.pickup(callFloor, direction);
+        elevatorSystem.pickUp(callFloor, direction);
 
 
         Assertions.assertTrue(elevator.hasCall(callFloor));
@@ -59,7 +59,7 @@ public class ElevatorSystemUnitTests {
         elevator.setElevatorState(ElevatorState.GOING_DOWN);
         elevatorSystem.addElevator(elevator);
 
-        elevatorSystem.pickup(callFloor, direction);
+        elevatorSystem.pickUp(callFloor, direction);
 
 
         Assertions.assertTrue(elevator.hasCall(callFloor));
@@ -73,10 +73,10 @@ public class ElevatorSystemUnitTests {
 
         Integer callFloor1 = 3;
         Integer direction1 = 1;
-        elevatorSystem.pickup(callFloor1, direction1);
+        elevatorSystem.pickUp(callFloor1, direction1);
         Integer callFloor2 = 2;
         Integer direction2 = -1;
-        elevatorSystem.pickup(callFloor2, direction2);
+        elevatorSystem.pickUp(callFloor2, direction2);
 
 
         List<Pair<Integer, Integer>> queueWaitingCustomers = elevatorSystem.getQueueWaitingCustomers();
@@ -92,10 +92,10 @@ public class ElevatorSystemUnitTests {
 
         Integer callFloor1 = 3;
         Integer direction1 = 1;
-        elevatorSystem.pickup(callFloor1, direction1);
+        elevatorSystem.pickUp(callFloor1, direction1);
         Integer callFloor2 = 2;
         Integer direction2 = -1;
-        elevatorSystem.pickup(callFloor2, direction2);
+        elevatorSystem.pickUp(callFloor2, direction2);
 
         String input = "4";
         InputStream in = new ByteArrayInputStream(input.getBytes());
@@ -121,8 +121,8 @@ public class ElevatorSystemUnitTests {
         elevator2.setCurrentFloor(5);
         elevatorSystem.addElevator(elevator2);
 
-        elevatorSystem.pickup(3, 1);
-        elevatorSystem.pickup(3, 1);
+        elevatorSystem.pickUp(3, 1);
+        elevatorSystem.pickUp(3, 1);
 
         elevatorSystem.step();
 
@@ -144,7 +144,7 @@ public class ElevatorSystemUnitTests {
         elevator2.setCurrentFloor(5);
         elevatorSystem.addElevator(elevator2);
 
-        elevatorSystem.pickup(4, 1);
+        elevatorSystem.pickUp(4, 1);
 
         Assertions.assertEquals(ElevatorState.GOING_DOWN, elevator2.getElevatorState());
         Assertions.assertEquals(4, elevator2.getCurrentDestinationFloor());
@@ -162,7 +162,7 @@ public class ElevatorSystemUnitTests {
         elevator2.setCurrentFloor(5);
         elevatorSystem.addElevator(elevator2);
 
-        elevatorSystem.pickup(3, 1);
+        elevatorSystem.pickUp(3, 1);
 
         Assertions.assertEquals(ElevatorState.GOING_UP, elevator1.getElevatorState());
         Assertions.assertEquals(3, elevator1.getCurrentDestinationFloor());
@@ -180,9 +180,9 @@ public class ElevatorSystemUnitTests {
         elevator2.setCurrentFloor(5);
         elevatorSystem.addElevator(elevator2);
 
-        elevatorSystem.pickup(6, 1);
-        elevatorSystem.pickup(5, 1);
-        elevatorSystem.pickup(10, 1);
+        elevatorSystem.pickUp(6, 1);
+        elevatorSystem.pickUp(5, 1);
+        elevatorSystem.pickUp(10, 1);
 
 
         Assertions.assertEquals(ElevatorState.GOING_UP, elevator1.getElevatorState());
@@ -201,9 +201,9 @@ public class ElevatorSystemUnitTests {
         elevator2.setCurrentFloor(15);
         elevatorSystem.addElevator(elevator2);
 
-        elevatorSystem.pickup(4, -1);
-        elevatorSystem.pickup(9, -1);
-        elevatorSystem.pickup(13, -1);
+        elevatorSystem.pickUp(4, -1);
+        elevatorSystem.pickUp(9, -1);
+        elevatorSystem.pickUp(13, -1);
 
 
         Assertions.assertEquals(ElevatorState.GOING_DOWN, elevator1.getElevatorState());
@@ -222,9 +222,9 @@ public class ElevatorSystemUnitTests {
         elevator2.setCurrentFloor(10);
         elevatorSystem.addElevator(elevator2);
 
-        elevatorSystem.pickup(2, 1);
+        elevatorSystem.pickUp(2, 1);
 
-        elevatorSystem.pickup(6, 1);
+        elevatorSystem.pickUp(6, 1);
 
 
         Assertions.assertEquals(ElevatorState.GOING_UP, elevator1.getElevatorState());
@@ -243,9 +243,9 @@ public class ElevatorSystemUnitTests {
         elevator2.setCurrentFloor(10);
         elevatorSystem.addElevator(elevator2);
 
-        elevatorSystem.pickup(2, 1);
+        elevatorSystem.pickUp(2, 1);
 
-        elevatorSystem.pickup(3, 1);
+        elevatorSystem.pickUp(3, 1);
 
 
         Assertions.assertEquals(ElevatorState.GOING_UP, elevator1.getElevatorState());
@@ -263,9 +263,9 @@ public class ElevatorSystemUnitTests {
         elevator2.setCurrentFloor(1);
         elevatorSystem.addElevator(elevator2);
 
-        elevatorSystem.pickup(7, -1);
+        elevatorSystem.pickUp(7, -1);
 
-        elevatorSystem.pickup(4, -1);
+        elevatorSystem.pickUp(4, -1);
 
 
         Assertions.assertEquals(ElevatorState.GOING_DOWN, elevator1.getElevatorState());
@@ -284,9 +284,9 @@ public class ElevatorSystemUnitTests {
         elevator2.setCurrentFloor(1);
         elevatorSystem.addElevator(elevator2);
 
-        elevatorSystem.pickup(8, -1);
+        elevatorSystem.pickUp(8, -1);
 
-        elevatorSystem.pickup(7, -1);
+        elevatorSystem.pickUp(7, -1);
 
 
         Assertions.assertEquals(ElevatorState.GOING_DOWN, elevator1.getElevatorState());
@@ -304,10 +304,10 @@ public class ElevatorSystemUnitTests {
         elevator2.setCurrentFloor(1);
         elevatorSystem.addElevator(elevator2);
 
-        elevatorSystem.pickup(7, -1);
-        elevatorSystem.pickup(4, 1);
+        elevatorSystem.pickUp(7, -1);
+        elevatorSystem.pickUp(4, 1);
 
-        elevatorSystem.pickup(5, -1);
+        elevatorSystem.pickUp(5, -1);
 
 
         Assertions.assertEquals(ElevatorState.GOING_DOWN, elevator1.getElevatorState());
@@ -327,10 +327,10 @@ public class ElevatorSystemUnitTests {
         elevator2.setCurrentFloor(1);
         elevatorSystem.addElevator(elevator2);
 
-        elevatorSystem.pickup(7, -1);
-        elevatorSystem.pickup(4, 1);
+        elevatorSystem.pickUp(7, -1);
+        elevatorSystem.pickUp(4, 1);
 
-        elevatorSystem.pickup(5, 1);
+        elevatorSystem.pickUp(5, 1);
 
 
         Assertions.assertEquals(ElevatorState.GOING_DOWN, elevator1.getElevatorState());

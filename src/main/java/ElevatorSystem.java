@@ -10,40 +10,16 @@ import java.util.TreeMap;
 
 public class ElevatorSystem implements IElevatorSystem {
     private static int numberOfIteration;
-    private final List<Triple<Integer, Integer, Integer>> elevatorList;
     private final TreeMap<Pair<Integer, Integer>, Elevator> freeElevators;
     private final TreeMap<Pair<Integer, Integer>, Elevator> goingUpElevators;
     private final TreeMap<Pair<Integer, Integer>, Elevator> goingDownElevators;
     private final List<Pair<Integer, Integer>> queueWaitingCustomers;
 
-
-    public static int getNumberOfIteration() {
-        return numberOfIteration;
-    }
-
-    public List<Triple<Integer, Integer, Integer>> getElevatorList() {
-        return elevatorList;
-    }
-
-    public TreeMap<Pair<Integer, Integer>, Elevator> getFreeElevators() {
-        return freeElevators;
-    }
-
-    public TreeMap<Pair<Integer, Integer>, Elevator> getGoingUpElevators() {
-        return goingUpElevators;
-    }
-
-    public TreeMap<Pair<Integer, Integer>, Elevator> getGoingDownElevators() { return goingDownElevators; }
-
-    public List<Pair<Integer, Integer>> getQueueWaitingCustomers() {
-        return queueWaitingCustomers;
-    }
+    public List<Pair<Integer, Integer>> getQueueWaitingCustomers() { return queueWaitingCustomers; }
 
 
     public ElevatorSystem() {
         numberOfIteration = 0;
-
-        elevatorList = new ArrayList<>();
 
         PairComparator pairComparator = new PairComparator();
 
@@ -54,14 +30,21 @@ public class ElevatorSystem implements IElevatorSystem {
     }
 
     public void addElevator(Elevator elevator) {
-        //elevatorList.add(new Triple<>(elevator.getID(), elevator.getCurrentFloor(), elevator.getCurrentDestinationFloor()));
         freeElevators.put(new Pair<>(elevator.getCurrentFloor(), elevator.getID()), elevator);
     }
 
-    public void checkStatusOfSystem() {
-        for (Triple<Integer, Integer, Integer> curr: elevatorList) {
-            System.out.print("[" + curr.getFirst() + ", " + curr.getSecond() + ", " + curr.getThird() + "]\n");
+    public void displayStatusOfOneCollection(TreeMap<Pair<Integer, Integer>, Elevator> currentCollection) {
+        for (Map.Entry<Pair<Integer, Integer>, Elevator> curr : currentCollection.entrySet()) {
+            Elevator currElevator = curr.getValue();
+            System.out.print("[" + currElevator.getID() + ", " + currElevator.getCurrentFloor() + ", " + currElevator.getCurrentDestinationFloor() + "] ");
         }
+    }
+
+    public void displayStatusOfSystem() {
+        displayStatusOfOneCollection(freeElevators);
+        displayStatusOfOneCollection(goingUpElevators);
+        displayStatusOfOneCollection(goingDownElevators);
+        System.out.println();
     }
 
 
@@ -172,7 +155,7 @@ public class ElevatorSystem implements IElevatorSystem {
         return new Pair<>(collectionWithNearestElevator, nearestElevator);
     }
 
-    public void pickup(Integer callFloor, Integer direction) {
+    public void pickUp(Integer callFloor, Integer direction) {
         Pair<TreeMap<Pair<Integer, Integer>, Elevator>, Elevator> collectionAndElevator = findElevatorToPickUp(callFloor, direction);
 
         if (collectionAndElevator == null) {
@@ -270,11 +253,7 @@ public class ElevatorSystem implements IElevatorSystem {
         queueWaitingCustomers.clear();
 
         for (Pair<Integer, Integer> pickUpCall: oldQueue) {
-            pickup(pickUpCall.getKey(), pickUpCall.getValue());
+            pickUp(pickUpCall.getKey(), pickUpCall.getValue());
         }
-    }
-
-    public List<Triple<Integer, Integer, Integer>> status() {
-        return elevatorList;
     }
 }

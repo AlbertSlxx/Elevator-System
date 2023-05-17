@@ -1,13 +1,13 @@
 package main.java;
 
-import java.util.List;
+import javafx.util.Pair;
+
+import java.util.TreeMap;
 
 public interface IElevatorSystem {
-    void pickup(Integer callFloor, Integer direction);
-
-    //void update(Integer elevatorID, Integer currentFloor, Integer destinationFloor);
-
+    void addElevator(Elevator elevator);
+    void pickUp(Integer callFloor, Integer direction);
+    void update(TreeMap<Pair<Integer, Integer>, Elevator> currentMap, Elevator elevator);
     void step();
-
-    List<Triple<Integer, Integer, Integer>> status();
+    void displayStatusOfSystem();
 }

@@ -52,6 +52,11 @@ public class Elevator {
     }
     public void setCurrentDestinationFloor(int currentDestinationFloor) {
         this.currentDestinationFloor = currentDestinationFloor;
+
+        if (currentDestinationFloor > currentFloor)
+            setElevatorState(ElevatorState.GOING_UP);
+        else if (currentDestinationFloor < currentFloor)
+            setElevatorState(ElevatorState.GOING_DOWN);
     }
 
     public ElevatorState getElevatorState() { return elevatorState; }
@@ -77,12 +82,12 @@ public class Elevator {
 
 
     public void displayStatus() {
-        System.out.println("Lift num " + ID + " is current on " + currentFloor + " floor, destination floor: " + currentDestinationFloor);
+        System.out.println("Lift num " + ID + " is current on " + currentFloor + " floor, destination floor: " + currentDestinationFloor + ". Status = " + elevatorState);
     }
 
     public void clickTargetFloorButton() {
         Scanner sc = new Scanner(System.in);
-        System.out.print(" Lift num " + ID + " is current on " + currentFloor + " floor, doors has been opened, passenger enters the elevator...\n Please enter destination floor: ");
+        System.out.print(" [Lift num: " + ID + "] Doors has been opened, passenger enters the elevator...\n [Lift num: " + ID + "] Please enter destination floor: ");
 
         int passengerDestFloor = sc.nextInt();
 
@@ -91,7 +96,7 @@ public class Elevator {
     }
 
     public void releasePassenger() {
-        System.out.println(" Lift num " + ID + " is current on " + currentFloor + " floor, doors has been opened, passenger exits the elevator...");
+        System.out.println(" [Lift num: " + ID + "] Doors has been opened, passenger exits the elevator...");
 
         updateDestFloor();
     }
@@ -115,8 +120,9 @@ public class Elevator {
                 (newDestinationFloor > currentDestinationFloor && elevatorState == ElevatorState.GOING_DOWN) ||
                 (floorsToStop.size() == 1)
            )
-            currentDestinationFloor = newDestinationFloor;
-
+        {
+            setCurrentDestinationFloor(newDestinationFloor);
+        }
     }
 
     public void updateDestFloor() {
@@ -128,8 +134,10 @@ public class Elevator {
 
         int size = floorsToStop.size();
         if (size > 0 && elevatorState == ElevatorState.GOING_UP)
-            currentDestinationFloor = Collections.min(floorsToStop);
+            setCurrentDestinationFloor(Collections.min(floorsToStop));
         else if (size > 0 && elevatorState == ElevatorState.GOING_DOWN)
-            currentDestinationFloor = Collections.max(floorsToStop);
+            setCurrentDestinationFloor(Collections.max(floorsToStop));
+        else if (size == 0)
+            setElevatorState(ElevatorState.FREE);
     }
 }

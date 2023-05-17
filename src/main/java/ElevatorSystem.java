@@ -33,17 +33,43 @@ public class ElevatorSystem implements IElevatorSystem {
         freeElevators.put(new Pair<>(elevator.getCurrentFloor(), elevator.getID()), elevator);
     }
 
+    private ElevatorState getCorrespondingElevatorState(TreeMap<Pair<Integer, Integer>, Elevator> currentMap) {
+        if (currentMap == goingUpElevators)
+            return ElevatorState.GOING_UP;
+        else if (currentMap == goingDownElevators)
+            return ElevatorState.GOING_DOWN;
+        else
+            return ElevatorState.FREE;
+    }
+
     public void displayStatusOfOneCollection(TreeMap<Pair<Integer, Integer>, Elevator> currentCollection) {
         for (Map.Entry<Pair<Integer, Integer>, Elevator> curr : currentCollection.entrySet()) {
             Elevator currElevator = curr.getValue();
-            System.out.print("[" + currElevator.getID() + ", " + currElevator.getCurrentFloor() + ", " + currElevator.getCurrentDestinationFloor() + "] ");
+            System.out.print(" [" + currElevator.getID() + ", " + currElevator.getCurrentFloor() + ", " + currElevator.getCurrentDestinationFloor() + "] ");
         }
+        System.out.println();
     }
 
     public void displayStatusOfSystem() {
-        displayStatusOfOneCollection(freeElevators);
-        displayStatusOfOneCollection(goingUpElevators);
-        displayStatusOfOneCollection(goingDownElevators);
+        int numOfFreeElevators = freeElevators.size();
+        int numOfGoingUpElevators = goingUpElevators.size();
+        int numOfGoingDownElevators = goingDownElevators.size();
+
+        if (numOfFreeElevators > 0) {
+            System.out.println("Free elevators [" + freeElevators.size() + "]:");
+            displayStatusOfOneCollection(freeElevators);
+        }
+
+        if (numOfGoingUpElevators > 0) {
+            System.out.println("Elevators going up [" + goingUpElevators.size() + "]:");
+            displayStatusOfOneCollection(goingUpElevators);
+        }
+
+        if (numOfGoingDownElevators > 0) {
+            System.out.println("Elevators going down [" + goingDownElevators.size() + "]:");
+            displayStatusOfOneCollection(goingDownElevators);
+        }
+
         System.out.println();
     }
 
@@ -164,7 +190,7 @@ public class ElevatorSystem implements IElevatorSystem {
             queueWaitingCustomers.add(currentPair);
 
             String directName = (direction == 1) ? "up" : "down";
-            System.out.println("No lift available to move from " + callFloor + " floor " + directName + " at the moment, please wait...");
+            System.out.println("No lift available to move from " + callFloor + " floor " + directName + " at the moment, you have been registered in queue, please wait...");
             return;
         }
 
@@ -178,31 +204,53 @@ public class ElevatorSystem implements IElevatorSystem {
         yourElevator.displayStatus();
         System.out.println();
 
-        if (currentCollection == freeElevators) {
-            freeElevators.remove(pair);
 
-            ElevatorState newState = (yourElevator.getCurrentFloor() < callFloor) ? ElevatorState.GOING_UP : ElevatorState.GOING_DOWN;
-            yourElevator.setElevatorState(newState);
-
-            if (newState == ElevatorState.GOING_UP) {
-                goingUpElevators.put(pair, yourElevator);
-            }
-            else {
-                goingDownElevators.put(pair, yourElevator);
-            }
+        if (getCorrespondingElevatorState(currentCollection) != yourElevator.getElevatorState()) {
+            currentCollection.remove(pair);
+            updateDirection(yourElevator);
         }
     }
 
-    public void update(TreeMap<Pair<Integer, Integer>, Elevator> currentMap, Elevator elevator) {
+    public void updateDirection(Elevator elevator) {
+        Pair<Integer, Integer> updatedPair = new Pair<>(elevator.getCurrentFloor(), elevator.getID());
+
+        if (elevator.getElevatorState() == ElevatorState.GOING_UP)
+            goingUpElevators.put(updatedPair, elevator);
+        else if (elevator.getElevatorState() == ElevatorState.GOING_DOWN)
+            goingDownElevators.put(updatedPair, elevator);
+        else if (elevator.getElevatorState() == ElevatorState.FREE)
+            freeElevators.put(updatedPair, elevator);
+    }
+
+    private void takeStepForElevator(Elevator elevator) {
         if (elevator.getCurrentFloor() != elevator.getCurrentDestinationFloor()) {
 
             int makeMove = (elevator.getCurrentFloor() < elevator.getCurrentDestinationFloor()) ? 1 : -1;
 
             elevator.setCurrentFloor(elevator.getCurrentFloor() + makeMove);
         }
+    }
 
-        Pair<Integer, Integer> updatedPair = new Pair<>(elevator.getCurrentFloor(), elevator.getID());
-        currentMap.put(updatedPair, elevator);
+    private void takeStepForCollection(TreeMap<Pair<Integer, Integer>, Elevator> collectionCopy, TreeMap<Pair<Integer, Integer>, Elevator> updatedCollection) {
+        updatedCollection.clear();
+
+        for (Map.Entry<Pair<Integer, Integer>, Elevator> current : collectionCopy.entrySet()) {
+            Elevator elevator = current.getValue();
+
+            takeStepForElevator(elevator);
+
+            if (elevator.getCurrentFloor() == elevator.getCurrentDestinationFloor()) {
+
+                if (elevator.ifTakePassengerOnCurrentFloor())
+                    elevator.clickTargetFloorButton();
+                else
+                    elevator.releasePassenger();
+            }
+
+            updateDirection(elevator);
+
+            elevator.displayStatus();
+        }
     }
 
     public void step() {
@@ -216,36 +264,6 @@ public class ElevatorSystem implements IElevatorSystem {
         tryAssignElevatorsToWaitingCustomers();
 
         System.out.println();
-    }
-
-    private void takeStepForCollection(TreeMap<Pair<Integer, Integer>, Elevator> collectionCopy, TreeMap<Pair<Integer, Integer>, Elevator> updatedCollection) {
-        updatedCollection.clear();
-
-        for (Map.Entry<Pair<Integer, Integer>, Elevator> current : collectionCopy.entrySet()) {
-            Elevator elevator = current.getValue();
-
-            update(updatedCollection, elevator);
-
-            if (elevator.getCurrentFloor() == elevator.getCurrentDestinationFloor()) {
-
-                if (elevator.ifTakePassengerOnCurrentFloor())
-                    elevator.clickTargetFloorButton();
-                else {
-                    elevator.releasePassenger();
-
-                    if (elevator.getNumberOfDestinations() == 0) {
-
-                        elevator.setElevatorState(ElevatorState.FREE);
-                        Pair<Integer, Integer> updatedPair = new Pair<>(elevator.getCurrentFloor(), elevator.getID());
-
-                        updatedCollection.remove(updatedPair);
-                        freeElevators.put(updatedPair, elevator);
-                    }
-                }
-            }
-
-            elevator.displayStatus();
-        }
     }
 
     private void tryAssignElevatorsToWaitingCustomers() {
